@@ -86,8 +86,8 @@ public:
     unsigned int operator [] (std::size_t i) { return digits[i]; }
 
     std::string toString() const {
-        std::string rep(' ', digits.size());
-        std::transform(digits.rbegin(), digits.rend(), rep.begin(), [](unsigned int arg){
+        std::string rep;
+        std::transform(digits.rbegin(), digits.rend(), std::back_inserter(rep), [](unsigned int arg){
             return (char)('0' + arg);
         });
         if (isNegative) rep = '-' + rep;
@@ -117,7 +117,7 @@ private:
 
     // Use recursive Karatsuba algorithm to multiply two sequences of digits. Sequences are assumend to be of the
     // same size.
-    static std::vector<char> multiplyDigits(const std::vector<char>& lhs, const std::vector<char>& rhs);
+    static std::vector<char> multiplyDigits(std::vector<char> lhs, std::vector<char> rhs);
 
     static void removeLeadingZeroes(std::vector<char>& digits) {
         digits.erase(
@@ -292,26 +292,21 @@ const BigInteger operator * (const T& value, const BigInteger& bigInteger) {
 const BigInteger BigInteger::operator * (const BigInteger& other) const {
 
     BigInteger product;
-    std::size_t zeroes = std::abs(int(digits.size()) - int(other.digits.size()));
-    if (zeroes != 0) {
-        auto smaller = digits.size() > other.digits.size() ? other.digits : digits;
-        const auto& greater = digits.size() > other.digits.size() ? digits : other.digits;
-        addLeadingZeroes(smaller, zeroes);
-        product.digits = multiplyDigits(greater, smaller);
-    }
-    else {
-        product.digits = multiplyDigits(digits, other.digits);
-    }
-
+    product.digits = multiplyDigits(digits, other.digits);
     product.isNegative = (isNegative != other.isNegative);
     removeLeadingZeroes(product.digits);
     product.normalizeZero();
     return product;
 }
 
-std::vector<char> BigInteger::multiplyDigits(const std::vector<char>& lhs, const std::vector<char>& rhs) {
+std::vector<char> BigInteger::multiplyDigits(std::vector<char> lhs, std::vector<char> rhs) {
 
-    assert(lhs.size() == rhs.size());
+    removeLeadingZeroes(lhs);
+    removeLeadingZeroes(rhs);
+
+    std::size_t zeroes = std::abs(int(lhs.size()) - int(rhs.size()));
+    if (lhs.size() > rhs.size()) addLeadingZeroes(rhs, zeroes);
+    else if (lhs.size() < rhs.size()) addLeadingZeroes(lhs, zeroes);
 
     // base case, since lhs and rhs are always of the same size, we should encounter situations when only one of them
     // has size of 1 but not the other.
@@ -335,6 +330,7 @@ std::vector<char> BigInteger::multiplyDigits(const std::vector<char>& lhs, const
 
     auto z11 = addDigits(x1, x0);
     auto z12 = addDigits(y1, y0);
+
     auto z13 = multiplyDigits(z11, z12);
 
     // this subtraction should always result in positive number due to the nature of the algorithm.

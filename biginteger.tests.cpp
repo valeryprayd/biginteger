@@ -1,6 +1,8 @@
 #include "gtest/gtest.h"
 #include "biginteger.h"
 
+#include <iostream>
+
 // 1. Parsing
 
 TEST(BigInteger, CorrectlyParsesNumberWithoutZeroes) {
@@ -310,4 +312,10 @@ TEST(BigInteger, CorrectlyMultipliesMixedPositiveAndNegativeNumbers2) {
 
 TEST(BigInteger, CorrectlyMultipliesMixedPositiveAndNegativeNumbers3) {
     ASSERT_EQ(5472, -12 * BigInteger(-456));
+}
+
+// 5. toString
+
+TEST(BigInteger, CorrectlyConstructionStringRepresentation) {
+    ASSERT_EQ("8800", (BigInteger(880) * BigInteger(10)).toString());
 }
