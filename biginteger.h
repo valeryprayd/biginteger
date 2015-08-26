@@ -15,8 +15,6 @@
 #include <utility>
 #include <string>
 
-#include <iostream>
-
 class BigInteger {
 public:
 
